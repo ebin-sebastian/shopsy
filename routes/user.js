@@ -1,45 +1,48 @@
 var express = require('express');
 var router = express.Router();
+var productHelpers = require('../helpers/product-helpers')
+const userHelpers=require('../helpers/user-helpers') 
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
   
-  let products=[
-    {
-      name:"Iphone 11",
-      category:"mobile",
-      description:"good phone",
-      price:'140000',
-      image:"https://www.apple.com/newsroom/images/2023/09/apple-debuts-iphone-15-and-iphone-15-plus/article/Apple-iPhone-15-lineup-hero-geo-230912_inline.jpg.large.jpg"
-
-    },
-    {
-      name:"Samsung S24 Ultra",
-      category:"mobile",
-      description:"good phone",
-      price:'120000',
-      image:"/images/samsung s24.webp"
-
-    },
-    {
-      name:"HTC desire",
-      category:"mobile",
-      description:"good phone",
-      price:'60000',
-      image:"https://www.apple.com/newsroom/images/2023/09/apple-debuts-iphone-15-and-iphone-15-plus/article/Apple-iPhone-15-lineup-hero-geo-230912_inline.jpg.large.jpg"
-
-    },
-    {
-      name:"Nothing Phone 2",
-      category:"mobile",
-      description:"good phone",
-      price:'40000',
-      image:"/images/Nothing-Phone-2.jpg"
-
-    },
-  ]
+  let user=req.session.user
+  console.log(user);
+  console.log("hi")
    
-  res.render('index', {products, admin:false});
+  productHelpers.getAllProducts().then((products)=>{
+    res.render('user/view-products',{admin:false,products,user})
+  })
 });
+router.get('/login',(req,res)=>{
+  res.render('user/login')
+})
+router.get('/signup',(req,res)=>{
+  res.render('user/signup')
+})
+router.post('/signup',(req,res)=>{
+  userHelpers.doSignup(req.body).then((response)=>{
+    console.log(response);
+    res.redirect('/login')
+  }) 
+})
+
+router.post('/login',(req,res)=>{
+  userHelpers.doLogin(req.body).then((response)=>{
+    if(response.status){
+      req.session.loggedIn=true
+      req.session.user=response.user
+      res.redirect('/')
+    }
+    else{
+      res.redirect('/login')
+    }
+  })
+})
+
+router.get('/logout',(req,res)=>{
+  req.session.destroy()
+  res.redirect('/')
+})
 
 module.exports = router;
